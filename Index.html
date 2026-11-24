@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Je tiens bon : compteur de jours</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eaf0ee;--panel:#fff;--tx:#14201f;--mu:#5f6f6d;--line:#d6e0dd;--soft:#f2f6f5;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0d1416;--panel:#162023;--tx:#eef5f3;--mu:#97a9a6;--line:#25353a;--soft:#1d2a2e}}
+:root[data-theme="dark"]{--bg:#0d1416;--panel:#162023;--tx:#eef5f3;--mu:#97a9a6;--line:#25353a;--soft:#1d2a2e}
+html{scroll-padding-top:env(safe-area-inset-top,0px);color-scheme:light dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.4}
+main{max-width:520px;margin:0 auto;padding:20px 16px 40px}
+h1{font-size:1.5rem;margin:4px 0 2px;font-weight:800;letter-spacing:-.02em}
+.sub{margin:0 0 18px;color:var(--mu)}
+.tabs{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px}
+.tab{font:inherit;color:var(--tx);background:transparent;border:2px solid var(--line);border-radius:16px;padding:10px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1px}
+.tab span{font-size:1.4rem}.tab small{font-size:.8rem;color:var(--mu)}.tab b{font-size:.95rem}
+.tab.on{background:var(--panel);border-color:var(--ac)}
+.tab:focus-visible,.btn:focus-visible,summary:focus-visible{outline:3px solid var(--ac);outline-offset:2px}
+.card{background:var(--panel);border-radius:28px;padding:24px 20px 20px;border-top:8px solid var(--ac)}
+.lbl{margin:0;color:var(--mu);font-weight:600}
+.big{display:flex;align-items:baseline;gap:10px;margin:2px 0 0}
+.big b{font-size:clamp(88px,30vw,136px);line-height:.95;font-weight:800;letter-spacing:-.05em;color:var(--ac);font-variant-numeric:tabular-nums}
+.big span{font-size:1.4rem;font-weight:600}
+.hms{display:flex;gap:18px;margin:6px 0 4px;font-variant-numeric:tabular-nums}
+.hms div{display:flex;align-items:baseline;gap:5px}.hms b{font-size:1.9rem;font-weight:800}.hms span{color:var(--mu)}
+.since{margin:0 0 18px;color:var(--mu);font-size:.9rem}
+.bar{height:10px;background:var(--soft);border-radius:9px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--ac);border-radius:9px;transition:width .6s}
+.nx{margin:8px 0 16px;font-size:.92rem}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px}
+.chips span{padding:4px 10px;border-radius:99px;border:1.5px solid var(--line);font-size:.82rem;color:var(--mu)}
+.chips span.on{background:var(--ac);border-color:var(--ac);color:#fff;font-weight:600}
+dl{margin:0 0 18px;display:grid;grid-template-columns:1fr 1fr;gap:0 16px}
+dl div{padding:10px 0;border-top:1px solid var(--line)}
+dt{color:var(--mu);font-size:.85rem}dd{margin:0;font-size:1.3rem;font-weight:800;font-variant-numeric:tabular-nums}
+.btn{font:inherit;font-weight:700;width:100%;padding:14px;border-radius:16px;border:2px solid var(--ac);background:var(--ac);color:#fff;cursor:pointer;font-size:1rem}
+.btn.ghost{background:transparent;color:var(--tx);border-color:var(--line)}
+.btn.warn{border-color:#d93a3a;background:#d93a3a;color:#fff}
+details{margin-top:14px;border-top:1px solid var(--line);padding-top:12px}
+summary{cursor:pointer;font-weight:600}
+label{display:block;margin:12px 0 4px;font-size:.88rem;color:var(--mu)}
+input{font:inherit;width:100%;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--soft);color:var(--tx)}
+.note{margin:22px 4px 0;font-size:.82rem;color:var(--mu)}
+.sv{margin-top:16px;background:var(--panel);border-radius:20px;padding:14px 16px}
+.sts{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:.82rem;color:var(--mu)}
+.sts .ok{color:#1f9d63;font-weight:600}.sts .bad{color:#d93a3a;font-weight:600}
+.sv details{margin-top:10px;padding-top:10px}
+.sv .btn{margin-top:10px;padding:11px;font-size:.92rem}
+textarea{font:inherit;font-size:.8rem;width:100%;margin-top:10px;padding:10px 12px;border-radius:12px;border:1.5px solid var(--line);background:var(--soft);color:var(--tx);resize:vertical}
+.svm{margin:8px 0 0;font-size:.85rem;color:var(--mu);min-height:1.2em}
+@media (prefers-reduced-motion:reduce){.bar i{transition:none}}
+</style>
+</head>
+<body>
+<main>
+  <h1>Je tiens bon</h1>
+  <p class="sub">Un jour de plus, c’est déjà gagné.</p>
+  <div class="tabs" id="tabs"></div>
+  <div id="card"></div>
+  <section class="sv"><div id="sv-st" class="sts" role="status"></div>
+    <details><summary>Copie de secours</summary>
+      <p class="svm" style="min-height:0">Ta progression est enregistrée automatiquement sur l’appareil et dans ton compte. Garde aussi une copie de côté.</p>
+      <button class="btn ghost" id="b-dl">Télécharger une copie</button>
+      <button class="btn ghost" id="b-cp">Afficher et copier le code</button>
+      <textarea id="code" rows="3" spellcheck="false" placeholder="Colle ici un code de sauvegarde pour restaurer"></textarea>
+      <label for="fl">Ou choisis un fichier de sauvegarde</label><input id="fl" type="file" accept=".json,application/json">
+      <button class="btn ghost" id="b-rs">Restaurer ce code</button>
+      <p class="svm" id="sv-msg" role="status"></p>
+    </details></section>
+  <p class="note">Pour l’alcool, un arrêt brutal après une forte consommation peut être dangereux : parles-en à un médecin. En France : Tabac info service 3989, Alcool info service 0 980 980 930.</p>
+</main>
+<script>
+const H=[
+ {id:"tabac",e:"🚬",n:"Tabac",t:"Temps sans tabac",ac:"#e8562a"},
+ {id:"alcool",e:"🍺",n:"Alcool",t:"Temps sans alcool",ac:"#1f78d1"},
+ {id:"adulte",e:"🔞",n:"Contenu adulte",t:"Temps sans contenu adulte",ac:"#8a4fd6"}
+];
+const MS=[1,3,7,14,30,60,90,180,365],D=864e5;
+const DEF={tabac:{cpd:10,price:12,eur:0},alcool:{cpd:0,price:0,eur:10},adulte:{cpd:0,price:0,eur:0}};
+/* Sauvegarde : localStorage + copie de secours + IndexedDB + cloud (db), fusion par habitude, la plus récente gagne */
+let S={},cur="tabac",armed=null,timer=null,wt=null,rt=null,cloud=null;
+const KEY="jtb",st={loc:"ok",cl:"off",at:0};
+const norm=o=>{const r={};H.forEach(h=>{r[h.id]=Object.assign({start:null,best:0,rel:0,u:0},DEF[h.id],o&&o[h.id])});return r};
+const unpack=raw=>{try{const o=typeof raw==="string"?JSON.parse(raw):raw;return o?norm(o.v?o.d:o):null}catch(e){return null}};
+const valid=r=>{try{const o=JSON.parse(r),d=o.v?o.d:o;return H.some(h=>d&&d[h.id])}catch(e){return false}};
+const win=(x,y)=>((y.u||0)>(x.u||0)||((y.u||0)===(x.u||0)&&!x.start&&y.start))?y:x;
+const merge=(a,b)=>{if(!a)return b;if(!b)return a;const r={};H.forEach(h=>{r[h.id]=win(a[h.id],b[h.id])});return r};
+const pack=()=>JSON.stringify({v:2,t:Date.now(),d:S});
+const use=n=>typeof claude!=="undefined"?claude.use(n):Promise.resolve(null);
+S=unpack((()=>{try{return localStorage.getItem(KEY)}catch(e){return null}})())||norm();
+function idb(m,v){return new Promise(res=>{try{const q=indexedDB.open("jtb-db",1);q.onupgradeneeded=()=>q.result.createObjectStore("k");q.onerror=()=>res(null);q.onsuccess=()=>{const d=q.result,s=d.transaction("k",m==="get"?"readonly":"readwrite").objectStore("k"),r=m==="get"?s.get("s"):s.put(v,"s");r.onsuccess=()=>{res(m==="get"?r.result||null:true);d.close()};r.onerror=()=>{res(null);d.close()}}}catch(e){res(null)}})}
+function writeLocal(){
+  const p=pack();let ok=false;
+  try{const old=localStorage.getItem(KEY);if(old){let t=0;try{t=JSON.parse(old).t||0}catch(e){}if(Date.now()-t>36e5)localStorage.setItem(KEY+"_bak",old)}localStorage.setItem(KEY,p);ok=true}catch(e){}
+  idb("put",p).then(r=>{st.loc=(ok||r)?"ok":"err";paint()});
+}
+async function writeCloud(){
+  if(!cloud)return;
+  try{await cloud.set({v:2,t:Date.now(),d:S});st.cl="ok"}catch(e){st.cl="err"}
+  st.at=Date.now();paint();
+}
+function save(){S[cur].u=Date.now();writeLocal();clearTimeout(wt);wt=setTimeout(writeCloud,1200);st.at=Date.now();paint()}
+function paint(){
+  const e=$("sv-st");if(!e)return;
+  const l=st.loc==="err"?["bad","Appareil : échec"]:["ok","Appareil : enregistré"];
+  const c=st.cl==="ok"?["ok","Compte : synchronisé"]:st.cl==="err"?["bad","Compte : échec, nouvel essai à la prochaine action"]:["","Compte : indisponible ici"];
+  const t=st.at?new Date(st.at).toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"}):"";
+  e.innerHTML=`<span class="${l[0]}">${l[1]}</span><span class="${c[0]}">${c[1]}</span>`+(t?`<span>Dernière sauvegarde à ${t}</span>`:"");
+}
+const msg=t=>{const e=$("sv-msg");if(e)e.textContent=t};
+async function boot(){
+  try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+  let bak=null;try{bak=unpack(localStorage.getItem(KEY+"_bak"))}catch(e){}
+  S=merge(merge(S,unpack(await idb("get"))),bak);writeLocal();render();
+  try{
+    const [db,user]=await Promise.all([use("db"),use("user")]);
+    const uid=db&&user?await user.id():null;
+    if(uid){
+      cloud=db.doc("data/users/"+uid+"/progress");
+      const snap=await cloud.get();
+      S=merge(S,snap.exists?unpack(snap.data()):null);writeLocal();render();
+      await writeCloud();
+    }
+  }catch(e){st.cl="err"}
+  paint();
+}
+function wire(){
+  $("b-dl").onclick=async()=>{
+    const d=await use("downloads");
+    if(!d){msg("Téléchargement indisponible ici : utilise « Afficher et copier le code ».");return}
+    try{await d.save({filename:"je-tiens-bon-sauvegarde.json",data:pack()});msg("Copie enregistrée.")}catch(e){msg("Copie non enregistrée. Utilise le code à la place.")}
+  };
+  $("b-cp").onclick=()=>{
+    const p=pack(),c=$("code");c.value=p;c.select();
+    try{navigator.clipboard.writeText(p).then(()=>msg("Code copié. Colle-le dans une note à l’abri."),()=>msg("Sélectionne le code affiché et copie-le."))}catch(e){msg("Sélectionne le code affiché et copie-le.")}
+  };
+  $("fl").onchange=e=>{const f=e.target.files[0];if(f)f.text().then(t=>{$("code").value=t;msg("Fichier chargé. Appuie sur Restaurer.")})};
+  $("b-rs").onclick=e=>{
+    const b=e.currentTarget,t=$("code").value.trim();
+    if(!valid(t)){msg("Ce code n’est pas une sauvegarde valide.");return}
+    if(!rt){b.textContent="Confirmer : remplace les données actuelles";b.classList.add("warn");rt=setTimeout(()=>{rt=null;b.textContent="Restaurer ce code";b.classList.remove("warn")},5000);return}
+    clearTimeout(rt);rt=null;b.textContent="Restaurer ce code";b.classList.remove("warn");
+    S=unpack(t);const n=Date.now();H.forEach(h=>{S[h.id].u=n});save();render();msg("Sauvegarde restaurée.");
+  };
+  addEventListener("visibilitychange",()=>{if(document.visibilityState==="hidden"){writeLocal();clearTimeout(wt);writeCloud()}});
+  addEventListener("pagehide",writeLocal);
+}
+const $=id=>document.getElementById(id);
+const dur=id=>S[id].start?Math.max(0,Date.now()-S[id].start):0;
+const p2=n=>String(n).padStart(2,"0");
+const eur=n=>n.toLocaleString("fr-FR",{style:"currency",currency:"EUR"});
+const loc=ts=>new Date(ts-new Date(ts).getTimezoneOffset()*6e4).toISOString().slice(0,16);
+function left(ms){const d=Math.floor(ms/D),h=Math.floor(ms%D/36e5),m=Math.floor(ms%36e5/6e4);return d?d+" j "+h+" h":h?h+" h "+m+" min":Math.max(m,1)+" min"}
+function saved(id,ms){const s=S[id],d=ms/D;return id==="tabac"?d*s.cpd*s.price/20:d*s.eur}
+
+function render(){
+  const h=H.find(x=>x.id===cur),s=S[cur];
+  $("tabs").innerHTML=H.map(x=>`<button class="tab${x.id===cur?" on":""}" data-tab="${x.id}" style="--ac:${x.ac}"><span>${x.e}</span><b id="b-${x.id}">0 j</b><small>${x.n}</small></button>`).join("");
+  const set=cur==="tabac"
+    ?`<label for="k-cpd">Cigarettes fumées par jour avant</label><input id="k-cpd" data-k="cpd" type="number" min="0" inputmode="decimal" value="${s.cpd}"><label for="k-price">Prix d’un paquet de 20 (€)</label><input id="k-price" data-k="price" type="number" min="0" step="0.1" inputmode="decimal" value="${s.price}">`
+    :`<label for="k-eur">Argent dépensé par jour avant (€)</label><input id="k-eur" data-k="eur" type="number" min="0" step="0.5" inputmode="decimal" value="${s.eur}">`;
+  $("card").innerHTML=`<section class="card" style="--ac:${h.ac}">
+  <p class="lbl">${h.e} ${h.t}</p>
+  <div class="big"><b id="d">0</b><span>jours</span></div>
+  <div class="hms"><div><b id="h">00</b><span>h</span></div><div><b id="m">00</b><span>min</span></div><div><b id="s">00</b><span>s</span></div></div>
+  <p class="since" id="since"></p>
+  <div class="bar"><i id="bar"></i></div><p class="nx" id="nx"></p>
+  <div class="chips" id="ms"></div>
+  <dl><div><dt>${cur==="tabac"?"Cigarettes évitées":"Jours complets"}</dt><dd id="v1">0</dd></div><div><dt>Meilleure série</dt><dd id="v2">0 j</dd></div><div><dt>Rechutes</dt><dd id="v3">${s.rel}</dd></div><div><dt>Argent économisé</dt><dd id="v4">—</dd></div></dl>
+  ${s.start?`<button class="btn ghost" id="rel" data-a="rel">J’ai rechuté</button>`:`<button class="btn" data-a="go">Commencer maintenant</button>`}
+  <details><summary>Réglages</summary>
+  <label for="k-start">Date et heure de départ</label><input id="k-start" type="datetime-local" value="${s.start?loc(s.start):""}">${set}</details>
+  </section>`;
+  tick();
+}
+
+function tick(){
+  H.forEach(x=>{const b=$("b-"+x.id);if(b)b.textContent=Math.floor(dur(x.id)/D)+" j"});
+  const s=S[cur],ms=dur(cur),d=Math.floor(ms/D);
+  $("d").textContent=d;$("h").textContent=p2(Math.floor(ms%D/36e5));$("m").textContent=p2(Math.floor(ms%36e5/6e4));$("s").textContent=p2(Math.floor(ms%6e4/1e3));
+  $("since").textContent=s.start?"Depuis le "+new Date(s.start).toLocaleString("fr-FR",{day:"numeric",month:"long",year:"numeric",hour:"2-digit",minute:"2-digit"}):"Appuie sur Commencer pour lancer le compteur.";
+  const prev=[0].concat(MS).filter(x=>x*D<=ms).pop(),nx=MS.find(x=>x*D>ms);
+  $("bar").style.width=(nx?(ms-prev*D)/((nx-prev)*D)*100:100)+"%";
+  $("nx").textContent=nx?"Prochain palier : "+nx+(nx>1?" jours":" jour")+", encore "+left(nx*D-ms):"Plus d’un an. Tu peux être fier de toi.";
+  $("ms").innerHTML=MS.map(x=>`<span class="${ms>=x*D?"on":""}">${x} j</span>`).join("");
+  $("v1").textContent=cur==="tabac"?Math.floor(d*s.cpd).toLocaleString("fr-FR"):d;
+  $("v2").textContent=Math.floor(Math.max(s.best,ms)/D)+" j";
+  const sv=saved(cur,ms);$("v4").textContent=sv>0?eur(sv):"—";
+}
+
+document.addEventListener("click",e=>{
+  const t=e.target.closest("[data-tab]");
+  if(t){cur=t.dataset.tab;armed=null;render();return}
+  const a=e.target.closest("[data-a]");if(!a)return;
+  const s=S[cur];
+  if(a.dataset.a==="go"){s.start=Date.now();save();render()}
+  if(a.dataset.a==="rel"){
+    if(armed!==cur){armed=cur;a.textContent="Confirmer la rechute ?";a.classList.add("warn");clearTimeout(timer);timer=setTimeout(()=>{armed=null;const b=$("rel");if(b){b.textContent="J’ai rechuté";b.classList.remove("warn")}},4000);return}
+    s.best=Math.max(s.best,dur(cur));s.rel++;s.start=Date.now();armed=null;save();render();
+  }
+});
+document.addEventListener("input",e=>{
+  const i=e.target;
+  if(i.id==="k-start"){const t=new Date(i.value).getTime();if(!isNaN(t)){S[cur].start=Math.min(t,Date.now());save();tick()}}
+  else if(i.dataset.k){S[cur][i.dataset.k]=parseFloat(i.value)||0;save();tick()}
+});
+render();setInterval(tick,1000);wire();paint();boot();
+</script>
+</body>
+</html>
